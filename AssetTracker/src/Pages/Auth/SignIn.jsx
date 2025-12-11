@@ -17,20 +17,14 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import * as Yup from "yup";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../store/reducers/authReducer";
-import { getCookie } from "../helpers/Cookie.js";
-import COLORS from "../constants/Colors.js";
+import { loginSuccess } from "../../store/reducers/authReducer.js";
+import { getCookie } from "../../helpers/Cookie.js";
+import COLORS from "../../constants/Colors.js";
 
 const schema = Yup.object().shape({
-  email: Yup.string().email("Invalid email format").required("Email is required"),
-  password: Yup.string()
-    .required("Password is required")
-    .matches(/[A-Z]/, "At least one uppercase letter required")
-    .matches(/[a-z]/, "At least one lowercase letter required")
-    .matches(/[0-9]/, "At least one number required")
-    .matches(/[@$!%*?&]/, "At least one special character required")
-    .min(8, "Password must be at least 8 characters")
-    .max(16, "Password cannot exceed 16 characters"),
+  email: Yup.string()
+    .email("Invalid email format")
+    .required("Email is required"),
 });
 
 const SignIn = () => {
@@ -40,35 +34,53 @@ const SignIn = () => {
 
   const form = useForm({
     initialValues: {
-      email: localStorage.getItem("email") || "",
-      password: localStorage.getItem("password") || "",
+      email: getCookie("email") || "",
+      password: getCookie("password") || "",
     },
     validate: yupResolver(schema),
   });
 
   const mutation = useMutation({
     mutationFn: async (values) => {
-      const response = await axios.post("http://localhost:3000/api/v1/auth/signin", values);
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/auth/signin",
+        values
+      );
       return response.data;
     },
     onSuccess: (data) => {
+   
       if (data.success) {
         dispatch(
           loginSuccess({
-            user: data.user,
+            user: data.data,
             remember: remember,
-            email: data.email,
+            email: form.values.email,
+            password: form.values.password, // ✅ add this
             token: data.token,
           })
         );
-        notifications.show({ title: "Success", message: "Login successful! Redirecting...", color: "green" });
+
+        notifications.show({
+          title: "Success",
+          message: "Login successful! Redirecting...",
+          color: "green",
+        });
         navigate("/dashboard");
       } else {
-        notifications.show({ title: "Error", message: data.error || "Login failed", color: "red" });
+        notifications.show({
+          title: "Error",
+          message: data.error || "Login failed",
+          color: "red",
+        });
       }
     },
     onError: (error) => {
-      notifications.show({ title: "Error", message: error.response?.data?.error || "Something went wrong", color: "red" });
+      notifications.show({
+        title: "Error",
+        message: error.response?.data?.error || "Something went wrong",
+        color: "red",
+      });
     },
   });
 
@@ -89,8 +101,6 @@ const SignIn = () => {
         background: "linear-gradient(135deg, #8EC5FC, #E0C3FC)",
       }}
     >
-     
-
       {/* Login Card */}
       <Paper
         p="xl"
@@ -98,24 +108,36 @@ const SignIn = () => {
         shadow="xl"
         style={{ minWidth: 320, maxWidth: 400, width: "100%" }}
       >
-        <div>xuny@mailinator.com || Pa$$w0rd!</div>
+        <div>sariful@gmail.com || 111111</div>
         <form onSubmit={form.onSubmit((values) => mutation.mutate(values))}>
           <Stack spacing="md">
-            <Title order={3} align="center">Login</Title>
-            <Text align="center" color={COLORS.dimmed}>Distribution Portal</Text>
+            <Title order={3} align="center">
+              Login
+            </Title>
+            <Text align="center" color={COLORS.dimmed}>
+              Distribution Portal
+            </Text>
 
             <TextInput
               label="Email"
               placeholder="john.doe@email.com"
               {...form.getInputProps("email")}
-              error={form.errors.email && <Text color={COLORS.error}>{form.errors.email}</Text>}
+              error={
+                form.errors.email && (
+                  <Text color={COLORS.error}>{form.errors.email}</Text>
+                )
+              }
             />
 
             <PasswordInput
               label="Password"
               placeholder="*******"
               {...form.getInputProps("password")}
-              error={form.errors.password && <Text color={COLORS.error}>{form.errors.password}</Text>}
+              error={
+                form.errors.password && (
+                  <Text color={COLORS.error}>{form.errors.password}</Text>
+                )
+              }
             />
 
             <Checkbox
@@ -125,7 +147,11 @@ const SignIn = () => {
               styles={{
                 checkbox: {
                   borderColor: "#000",
-                  '&:checked': { backgroundColor: COLORS.primary, borderColor: COLORS.primary, color: "#000" },
+                  "&:checked": {
+                    backgroundColor: COLORS.primary,
+                    borderColor: COLORS.primary,
+                    color: "#000",
+                  },
                 },
                 label: { color: "#333" },
               }}
@@ -135,7 +161,7 @@ const SignIn = () => {
               align="left"
               color={COLORS.accent}
               style={{ cursor: "pointer" }}
-              onClick={() => navigate("/forgot-password")}
+              onClick={() => navigate("/forget-password")}
             >
               Forgot Password?
             </Text>
@@ -145,7 +171,10 @@ const SignIn = () => {
               radius="md"
               size="md"
               loading={mutation.isLoading}
-              style={{ background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.accent})`, color: COLORS.secondary }}
+              style={{
+                background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.accent})`,
+                color: COLORS.secondary,
+              }}
             >
               Login
             </Button>

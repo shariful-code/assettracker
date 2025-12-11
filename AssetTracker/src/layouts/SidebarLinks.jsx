@@ -3,7 +3,7 @@ import { Stack } from "@mantine/core";
 import SidebarItems from "../constants/SidebarItems";
 import SidebarLink from "./SidebarLink";
 
-const SidebarLinks = ({ onClickMobile }) => {
+const SidebarLinks = ({ onclick }) => {
   return (
     <Stack spacing="xs">
       {SidebarItems.map((item, idx) => (
@@ -12,7 +12,7 @@ const SidebarLinks = ({ onClickMobile }) => {
           icon={item.icon}
           label={item.label}
           link={item.link}
-          onClickMobile={onClickMobile} // Pass down the close function
+          onClick={onclick} // Pass down the close function
         />
       ))}
     </Stack>

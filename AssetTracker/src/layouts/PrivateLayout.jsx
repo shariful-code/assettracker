@@ -15,28 +15,59 @@ import SidebarLinks from "../layouts/SidebarLinks";
 import NavbarLink from "../layouts/SidebarLink";
 import { IconLogout } from "@tabler/icons-react";
 import COLORS from "../constants/Colors";
+import SidebarLink from "../layouts/SidebarLink";
+import { useDispatch } from "react-redux";
+import { logout } from "../store/reducers/authReducer";
+import { modals } from "@mantine/modals";
+import HeaderContent from "../components/HeaderContent";
+import Logo from "../assets/manushTech.ico"
 
 const PrivateLayout = () => {
   const [opened, { toggle, close }] = useDisclosure(false);
   const navigate = useNavigate();
+const dispatch = useDispatch();
 
+ 
   const handleLogout = () => {
+    
+    dispatch(logout())
     navigate("/signin");
   };
 
+  //logout modal open
+   const handleLogoutModal = () => {
+     modals.openConfirmModal({
+      title: 'Are you sure?',
+        centered: true,
+      children: (
+        <Text size="sm">
+          Are You Sure You Want To Logout??
+        </Text>
+      ),
+      
+      labels: { confirm: 'Confirm', cancel: 'Cancel' },
+       confirmProps: { color: 'red' },
+      onCancel: () => console.log('Cancel'),
+      onConfirm: () => {
+       handleLogout()
+       // closeAllModals();
+      },
+    });
+    };
+
   return (
     <AppShell
-      padding={0}
+      padding={"md"}
       navbar={{
         width: 260,
         breakpoint: "md",
         collapsed: { mobile: !opened },
       }}
-      header={{ height: 70 }}
+      header={{ height: { base: 50 } }}
       styles={{
         main: {
-          background: COLORS.mainBg || "#f8f9fa",
-          margin: "20px",
+          background: COLORS.mainBg ,
+      
         },
       }}
     >
@@ -48,34 +79,37 @@ const PrivateLayout = () => {
           boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         }}
       >
-        <Group h="100%" px="lg" position="apart">
-          <Group>
-            <Burger
-              opened={opened}
-              onClick={toggle}
-              hiddenFrom="md"
-              size="sm"
-              color={COLORS.secondary}
-            />
-            <Box
-              component="img"
-              src="/orbit_logo_dark.png"
-              alt="Logo"
-              style={{ width: 70 }}
-            />
-          </Group>
+    <Flex
+      align="center"          // vertically center everything
+      justify="space-between" // push first child left, second child right
+      h="100%"
+      px="lg"
+    >
+      {/* Left side: burger + logo */}
+      <Flex align="center" gap="md">
+        <Burger
+          opened={opened}
+          onClick={toggle}
+          hiddenFrom="md"
+          size="sm"
+          color={COLORS.secondary}
+        />
+        <Box
+          component="img"
+          src={Logo}
+          alt="Logo"
+          style={{ width: 40 ,marginLeft: 99,  }}
+        />
+      </Flex>
 
-          <Flex align="center" gap={12}>
-            <Text fw={600} color={COLORS.secondary} size="lg">
-              Dashboard
-            </Text>
-          </Flex>
-        </Group>
+      {/* Right side: user info */}
+      <HeaderContent />
+    </Flex>
       </AppShell.Header>
 
       {/* SIDEBAR */}
       <AppShell.Navbar
-        p="md"
+        p="xs"
         style={{
           backgroundColor: COLORS.secondary,
           borderRight: "1px solid rgba(0,0,0,0.05)",
@@ -89,8 +123,8 @@ const PrivateLayout = () => {
         </ScrollArea>
 
         <Button
-          leftIcon={<IconLogout size={16} />}
-          onClick={handleLogout}
+          leftSection={<IconLogout size={16} />}
+          onClick={handleLogoutModal}
           fullWidth
           variant="light"
           color="red"
@@ -103,6 +137,7 @@ const PrivateLayout = () => {
         >
           Logout
         </Button>
+
       </AppShell.Navbar>
 
       {/* MAIN CONTENT */}

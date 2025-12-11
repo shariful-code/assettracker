@@ -1,20 +1,33 @@
-import axios from "axios";
+import httpRequest from "../helpers/httpRequest.js"; 
+// তোমার httpRequest file যেখানে আছে সেই path অনুযায়ী ঠিক করে দিও
 
-export const GetUserApi = async () => {
-  const response = await axios.get("http://localhost:3000/api/v1/user", {
-    withCredentials: true,
-  });
-  return response.data.users; // return user list directly
+// Get all users with pagination
+
+export const GetUserApi = async ({ page, pageSize, search }) => {
+  return httpRequest.get("/user", { page, pageSize, search });
 };
+
+//create user
+export const createUserApi = async (data) => {
+  try {
+    const response = await httpRequest.post(`${BASE_URL}/create-user`, data);
+
+    return response;
+  } catch (e) {
+  
+  }
+};
+// Update user
 export const updateUserApi = async ({ id, data }) => {
-  const response = await axios.put(`http://localhost:3000/api/v1/user/${id}`, data);
-  return response.data;
+  return httpRequest.put(`/user/${id}`, data);
 };
 
-
-
-
+// Delete user
 export const deleteUserApi = async (id) => {
-  const response = await axios.delete(`http://localhost:3000/api/v1/user/${id}`);
-  return response.data;
+  return httpRequest.delete(`/user/${id}`);
+};
+
+// Get a user by ID
+export const getUserByIdApi = async (id) => {
+  return httpRequest.get(`/user/${id}`);
 };

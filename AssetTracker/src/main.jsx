@@ -19,7 +19,7 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ReduxWrapper>
-      <MantineProvider  defaultColorScheme="">
+      <MantineProvider  >
       <ModalsProvider>
          <Notifications />
         <BrowserRouter>

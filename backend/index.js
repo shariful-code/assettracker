@@ -1,8 +1,7 @@
 import express from "express";
 import cors from "cors";
+import redisClient from "../backend/redis-client.js"
 
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import pool from "./db.js";
 import dotenv from "dotenv";
 import routes from './Routes/index.js'
@@ -11,7 +10,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET;
+
 
 // -------------------- CORS --------------------
 app.use(
@@ -31,7 +30,10 @@ app.get("/", (req, res) => {
   res.send("Server is running!");
 });
 
+
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+

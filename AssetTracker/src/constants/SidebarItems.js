@@ -1,5 +1,5 @@
 // src/constants/SidebarItems.js
-import { IconBuildingStore, IconUser } from "@tabler/icons-react";
+import { IconBuildingStore, IconUser ,IconCategory,IconBrandAngularFilled,IconBusinessplan, IconUserCircle} from "@tabler/icons-react";
 import * as urls from "./AppUrls";
 
 const SidebarItems = [
@@ -14,15 +14,37 @@ const SidebarItems = [
     link: urls.USER, // /employee
   },
   {
+    label: "Employee",
+    icon: IconUserCircle,
+    link: urls.EMPLOYEE, 
+  },
+  {
     label: "Assets",
     icon: IconBuildingStore,
     link: urls.ASSETS, // /assets
   },
   {
-    label: "Employee",
+    label: "Department",
     icon: IconUser,
-    link: urls.EMPLOYEE, // /employee
+    link: urls.DEPARTMENT, 
   },
+  {
+    label: "Category",
+    icon: IconCategory,
+    link: urls.CATEGORIES,
+  },
+   {
+    label: "Brand",
+    icon: IconBrandAngularFilled,
+    link: urls.BRAND, 
+  },
+  {
+    label: "Vendor",
+    icon: IconBusinessplan,
+    link: urls.VENDOR, 
+  },
+   
+  
 ];
 
 export default SidebarItems;

@@ -1,132 +1,155 @@
-// src/pages/User.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Table,
-  ScrollArea,
-  Loader,
-  Center,
-  Button,
-  Group,
-  Text,
-  Flex,
-  Box,
-} from "@mantine/core";
+import { Button, Group, Text, Flex } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import { deleteUserApi, GetUserApi } from "../../services/user";
+import CustomTable from "../../components/global/CustomTable";
+import CustomPagination from "../../components/global/CustomPagination";
+import { closeAllModals, modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
+import { IconEdit, IconTrash } from "@tabler/icons-react";
+
+import PageTop from "../../components/global/PageTop.jsx";
+import UserFilters from "../../components/User/UserFilters.jsx";
+import TablePaperContent from "../../components/global/TablePaperContent"; // <-- Added
+import useDebounce from "../../hooks/useDebounce.js";
+const PAGE_SIZE = 10;
 
 const User = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Mutation for deleting user
+  const [page, setPage] = useState(1);
+  const [searchKey, setSearchKey] = useState("");
+  const debouncedSearch = useDebounce(searchKey, 2000); // 3 sec delay
+
+  const handleSearch = (e) => {
+    setSearchKey(e.currentTarget.value);
+    setPage(1); // search e page reset
+  };
+
+  // DELETE MODAL
+  const openDeleteModal = (id) => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: <Text size="sm">Are You Sure To Delete This User?</Text>,
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => mutation.mutate(id),
+    });
+  };
+
   const mutation = useMutation({
     mutationFn: (id) => deleteUserApi(id),
-    onSuccess: () => queryClient.invalidateQueries(["users"]),
-    onError: (err) => console.error(err),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["users", page]);
+      closeAllModals();
+      notifications.show({
+        title: "Success",
+        message: "User deleted successfully!",
+        position: "top-center",
+      });
+    },
   });
 
-  // Fetch users
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["users"],
-    queryFn: GetUserApi,
-    staleTime: 1000 * 60,
+  // FETCH USERS
+  const { data, isLoading, isFetching, isError, error } = useQuery({
+    queryKey: ["users", page, debouncedSearch],
+    queryFn: () =>
+      GetUserApi({
+        page,
+        pageSize: PAGE_SIZE,
+        search: debouncedSearch,
+      }),
+    keepPreviousData: true,
   });
 
-  if (isLoading) {
-    return (
-      <Center style={{ height: "100vh" }}>
-        <Loader variant="dots" />
-      </Center>
-    );
-  }
+  if (isError) return <Text color="red">{error.message}</Text>;
 
-  if (isError) {
-    return <Text color="red">{error.message}</Text>;
-  }
+  const users = data?.users || [];
+  const total = data?.total || 0;
 
-  const rows = data?.map((user) => (
-    <tr key={user.id} style={{ border: "1px solid #e0e0e0" }}>
-      <td style={{ padding: "12px 16px" }}>{user.id}</td>
-      <td style={{ padding: "12px 16px" }}>{`${user.firstName} ${user.lastName}`}</td>
-      <td style={{ padding: "12px 16px" }}>{user.email}</td>
-      <td style={{ padding: "12px 16px" }}>{user.phone || "N/A"}</td>
-      <td style={{ padding: "12px 16px" }}>
-        <Group spacing="xs" position="center">
+  // TABLE HEADERS
+  const tableHeaders = [
+    {
+      key: "sl",
+      headerTitle: "SL",
+      row: (v, row, index) => (page - 1) * PAGE_SIZE + index + 1,
+    },
+    {
+      key: "name",
+      headerTitle: "Name",
+      row: (v, row) => row.firstName + " " + row.lastName,
+    },
+    { key: "email", headerTitle: "Email" },
+    { key: "phone", headerTitle: "Phone" },
+    {
+      key: "actions",
+      headerTitle: "Actions",
+      row: (v, row) => (
+        <Group spacing="xs">
           <Button
             size="xs"
-            onClick={() => navigate(`/user/edit/${user.id}`, { state: user })}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "#ffffff",
-              borderRadius: 8,
-              padding: "6px 12px",
-              fontWeight: 500,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2563eb")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3b82f6")}
+            onClick={() => navigate(`/user/edit/${row.id}`)}
+            style={{ backgroundColor: "#3b82f6", color: "#fff" }}
           >
-            Edit
+            <IconEdit size={14} />
           </Button>
 
           <Button
             size="xs"
-            onClick={() => mutation.mutate(user.id)}
-            style={{
-              backgroundColor: "#ef4444",
-              color: "#ffffff",
-              borderRadius: 8,
-              padding: "6px 12px",
-              fontWeight: 500,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ef4444")}
+            onClick={() => openDeleteModal(row.id)}
+            style={{ backgroundColor: "#ef4444", color: "#fff" }}
           >
-            Delete
+            <IconTrash size={14} />
           </Button>
         </Group>
-      </td>
-    </tr>
-  ));
+      ),
+    },
+  ];
 
- return (
-  <Box p="md" style={{ backgroundColor: "#a08686ff",  }}>
-    {/* Header */}
-    <Flex justify="space-between" mb="md">
-      <Text fw={700} size="xl" color="#0f4794ff">
-        Users
-      </Text>
-      <Button
-        color="#0f4794ff"
-        onClick={() => navigate("/user/create")}
-        variant="filled"
-      >
-        Create User
-      </Button>
-    </Flex>
+  // REFRESH
+  const handleRefresh = () => {
+    setSearchKey("");
+    setPage(1);
+    queryClient.invalidateQueries(["users"]);
+  };
 
-    {/* Full-width table */}
-    <Box w="100%">
-     
-        <Table w="100%" style={{ width: "100%" }}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-         <tbody>{rows}</tbody>
-        </Table>
-      
-    </Box>
-  </Box>
-);
+  return (
+    <div>
+      <PageTop PAGE_TITLE="User Management" backBtn={false} />
 
+      {/* TABLE CONTAINER USING TablePaperContent */}
+      <TablePaperContent
+        filters={
+          <UserFilters
+            searchKey={searchKey}
+            onSearchChange={handleSearch}
+            onRefresh={handleRefresh}
+            onCreate={() => navigate("/user/create")}
+          />
+        }
+        filterBadges={null}
+        exportAndPagination={
+          <Flex justify="flex-end" align="center">
+            <CustomPagination
+              page={page}
+              setPage={setPage}
+              total={total}
+              pageSize={PAGE_SIZE}
+            />
+          </Flex>
+        }
+        table={
+          <CustomTable
+            tableHeaders={tableHeaders}
+            data={users}
+            isFetching={isLoading || isFetching}
+          />
+        }
+      />
+    </div>
+  );
 };
 
 export default User;

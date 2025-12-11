@@ -4,7 +4,8 @@ import { setCookie, getCookie } from "../../helpers/Cookie.js";
 const initialState = {
   user: null,
   isLoggedIn: false,
-  email: "", // for remember me
+  email: "",
+  tempData: null, // for remember me
 };
 
 const authSlice = createSlice({
@@ -12,34 +13,38 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action) => {
-      const { user, remember, email, token } = action.payload;
+      const { user, remember, email, password, token } = action.payload;
 
-      // 1️⃣ Update Redux state
+      // Update Redux state
       state.user = user;
       state.isLoggedIn = true;
       state.email = remember ? email : "";
 
-      // 2️⃣ Save token & user in cookies
-      setCookie("token", token, "1d"); // token cookie
-      setCookie("user", JSON.stringify(user), "1d"); // user cookie
+      // Save token & user in cookies
+      setCookie("token", token, "1d");
 
-      // 3️⃣ Remember email
+      console.log("from authreducer", getCookie("token"));
+      // setCookie("user", JSON.stringify(user), "1d");
+
+      // Remember email and password
       if (remember) {
         setCookie("email", email, "7d");
+        setCookie("password", password, "7d"); // ✅ save password
       } else {
         setCookie("email", "", "-1");
+        setCookie("password", "", "-1"); // ✅ clear password
       }
     },
 
     logout: (state) => {
       state.user = null;
       state.isLoggedIn = false;
-      state.email = "";
+      // state.email = "";
 
-      // Clear cookies
-      setCookie("token", "", "-1");
-      setCookie("user", "", "-1");
-      setCookie("email", "", "-1");
+      // // Clear cookies
+      // setCookie("token", "", "-1");
+      // setCookie("user", "", "-1");
+      // setCookie("email", "", "-1");
     },
 
     loadUserFromCookie: (state) => {
@@ -55,8 +60,14 @@ const authSlice = createSlice({
         state.email = emailCookie;
       }
     },
+
+    
+    setTempData: (state, action) => {
+      state.tempData = action.payload;
+    },
   },
 });
 
-export const { loginSuccess, logout, loadUserFromCookie } = authSlice.actions;
+export const { loginSuccess, logout, loadUserFromCookie, setTempData } =
+  authSlice.actions;
 export default authSlice.reducer;

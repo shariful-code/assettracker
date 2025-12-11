@@ -1,27 +1,47 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import { Container, Title, Text, Button, Stack, Center, Paper } from "@mantine/core";
+import { Link } from "react-router-dom";
 
-const Home = () => {
+export default function Home() {
   return (
-    <div>
-      <h1>This is Home page</h1>
+    <Center mih="100vh" style={{ background: "#ffff" }}>
+      <Paper
+        shadow="xl"
+        radius="lg"
+        p="xl"
+        withBorder
+        style={{
+          background: "#b6b3b3ff",
+          borderColor: "#333",
+          width: "420px",
+          textAlign: "center",
+        }}
+      >
+        <Stack spacing="md">
+          <Title order={1} c="white" ta="center">
+            Welcome to Home Page
+          </Title>
 
-      {/* Sign In Button */}
-      <Link to="/signin">
-        <button style={{
-          padding: "10px 20px",
-          background: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          marginTop: "20px"
-        }}>
-          Sign In
-        </button>
-      </Link>
-    </div>
-  )
+          <Text c="gray.4" size="lg">
+            Click the button below to sign in.
+          </Text>
+
+          <Link to="/signin" style={{ textDecoration: "none" }}>
+            <Button
+              size="md"
+              radius="md"
+              fullWidth
+              styles={{
+                root: {
+                  backgroundColor: "#1e88e5",
+                  "&:hover": { backgroundColor: "#1565c0" },
+                },
+              }}
+            >
+              Sign In
+            </Button>
+          </Link>
+        </Stack>
+      </Paper>
+    </Center>
+  );
 }
-
-export default Home

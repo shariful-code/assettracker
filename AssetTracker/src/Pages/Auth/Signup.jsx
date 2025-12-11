@@ -1,32 +1,26 @@
 import React from "react";
-import { TextInput, PasswordInput, Button, Paper, Title, Stack } from "@mantine/core";
+import { TextInput, PasswordInput, Button, Paper, Title, Stack, Text, Anchor } from "@mantine/core";
 import { useForm, yupResolver } from "@mantine/form";
 import * as Yup from "yup";
 import { useMutation } from "@tanstack/react-query";
 import { notifications } from '@mantine/notifications';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
+import COLORS from "../../constants/Colors"; // Make sure you have a COLORS file
 
 // -------------------- Validation Schema --------------------
 const schema = Yup.object().shape({
   first_name: Yup.string().required("First name is required"),
   last_name: Yup.string().required("Last name is required"),
-  phone: Yup.string()
-    .required("Phone number is required")
-    .matches(/^01\d{9}$/, "Enter a valid Bangladeshi phone number"),
-  email: Yup.string()
-    .email("Invalid email format")
-    .required("Email is required"),
+  phone: Yup.string().required("Phone number is required"),
+  email: Yup.string().email("Invalid email format").required("Email is required"),
   password: Yup.string()
-    .required("Password is required")
-    .matches(/[A-Z]/, "At least one uppercase letter required")
-    .matches(/[a-z]/, "At least one lowercase letter required")
-    .matches(/[0-9]/, "At least one number required")
-    .matches(/[@$!%*?&]/, "At least one special character required")
-    .min(8, "Password must be at least 8 characters")
-    .max(16, "Password cannot exceed 16 characters"),
+    .required("Password is required"),
+    
 });
 
 const Signup = () => {
+  const navigate = useNavigate();
   const form = useForm({
     initialValues: {
       first_name: "",
@@ -46,11 +40,12 @@ const Signup = () => {
     onSuccess: (data) => {
       notifications.show({
         title: 'Success',
-        message: data.message,
+        message: data.message || 'Account created successfully!',
         color: 'green',
         autoClose: 3000,
       });
       form.reset();
+      navigate("/signin");
     },
     onError: (err) => {
       notifications.show({
@@ -67,14 +62,25 @@ const Signup = () => {
   };
 
   return (
-    <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 40 }}>
-      <Paper shadow="md" radius="md" p="xl" withBorder style={{ width: 400 }}>
-        <Title order={2} ta="center" mb="lg">
+    <Stack
+      align="center"
+      justify="center"
+      style={{
+        height: "100vh",
+        background: "linear-gradient(135deg, #8EC5FC, #E0C3FC)",
+      }}
+    >
+      {/* Signup Card */}
+      <Paper p="xl" radius="md" shadow="xl" style={{ minWidth: 320, maxWidth: 400, width: "100%" }}>
+        <Title order={2} align="center" mb="md">
           Create an Account
         </Title>
+        <Text align="center" color={COLORS.dimmed} mb="lg">
+          Join our platform to get started
+        </Text>
 
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
+          <Stack spacing="md">
             <TextInput
               label="First Name"
               placeholder="Enter first name"
@@ -105,13 +111,28 @@ const Signup = () => {
               required
               {...form.getInputProps("password")}
             />
-            <Button type="submit" fullWidth size="md" mt="md">
+
+            <Button
+              type="submit"
+              fullWidth
+              size="md"
+              radius="md"
+              loading={signupMutation.isLoading}
+              style={{ background: `linear-gradient(90deg, ${COLORS.primary}, ${COLORS.accent})`, color: COLORS.secondary }}
+            >
               Sign Up
             </Button>
+
+            <Text align="center" mt="sm">
+              Already have an account?{" "}
+              <Anchor color={COLORS.accent} style={{ cursor: "pointer" }} onClick={() => navigate("/signin")}>
+                Sign In
+              </Anchor>
+            </Text>
           </Stack>
         </form>
       </Paper>
-    </div>
+    </Stack>
   );
 };
 

@@ -5,20 +5,155 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   firstName String
   lastName  String
-  email     String   @unique
+  email     String  @unique
   password  String
-  phone     String   @unique
-  token      String @default("")
-  
+  phone     String  @unique
+  token     String  @default("")
+  is_active Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-//xuny@mailinator.com
-//Pa$$w0rd!
+
+// -------------------- DEPARTMENT --------------------
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  is_active Boolean  @default(true)
+
+  employees Employee[]
+
+  @@map("department")
+}
+
+// -------------------- EMPLOYEE --------------------
+model Employee {
+  id Int @id @default(autoincrement())
+
+  fullName    String
+  email       String  @unique
+  phone       String?
+  designation String?
+  status      String  @default("active")
+
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  is_active    Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("employees")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  parentId Int? // null হলে main category
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+
+  is_active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Assets Asset[]
+
+  @@unique([name, parentId]) // same parent এর ভিতরে name unique
+  @@map("category")
+}
+
+// -------------------- VENDOR --------------------
+model Vendor {
+  id      Int     @id @default(autoincrement())
+  name    String
+  contact String?
+  email   String?
+  address String?
+
+  notes     String?
+  is_active Boolean @default(true)
+
+  Assets    Asset[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vendor")
+}
+
+// -------------------- BRAND --------------------
+model Brand {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  logo      String?
+  is_active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assets Asset[]
+
+  @@map("brand")
+}
+
+// -------------------- ASSET --------------------
+model Asset {
+  id Int @id @default(autoincrement())
+
+  brandId Int?
+  brand   Brand? @relation(fields: [brandId], references: [id])
+
+  specs         Json?
+  status        String    @default("in-stock")
+  notes         String?
+  purchaseDate  DateTime?
+  purchasePrice Float?
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  vendorId  Int?
+  vendor    Vendor? @relation(fields: [vendorId], references: [id])
+  is_active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assets")
+}
+
+// -------------------- ASSET ASSIGNMENT EMPLOYEE --------------------
+model AssetAssingmentEmployee {
+  id Int @id @default(autoincrement())
+
+  assetId    Int
+  employeeId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("asset_assingment_employee")
+}
+
+// -------------------- ASSET ASSIGNMENT DEPARTMENT --------------------
+model AssetAssingmentDepartment {
+  id Int @id @default(autoincrement())
+
+  assetId      Int
+  departmentId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("asset_assingment_deparment")
+}
