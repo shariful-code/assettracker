@@ -6,7 +6,12 @@ export const SetOTP = "/forget-password/setOTP"
 export const SetNewPassword = '/set-new-password'
 // PROTECTED ROUTES
 export const DASHBOARD = "/dashboard";
+
+//assets
 export const ASSETS = "/assets"
+export const ASSET_CREATE = 'asset/create'
+export const ASSET_EDIT = 'asset/edit/:id'
+export const ASSET_MAPPING = 'asset/mapping'
 
 
 export const EMPLOYEE = "/employee"
@@ -28,3 +33,7 @@ export const BRAND = '/band'
 
 export const VENDOR = '/vendor'
 
+export const DESIGNATION = '/designation'
+
+
+// 

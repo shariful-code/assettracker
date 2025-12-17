@@ -1,58 +1,40 @@
-import { Router } from 'express';
-import authRoutes from './authRoutes.js'
-import userRoutes from './userRoutes.js'
-import departmentRoutes from './departmentRoutes.js'
-import categoryRoutes from './categoryRoutes.js'
+import { Router } from "express";
 
-import brandRoutes from './brandRoutes.js'
-import verdorRoutes from './vendorRoutes.js'
-import employeeRoutes from './employeeRoutes.js'
-import assetRoutes from './assetRoutes.js'
+import authRoutes from "./authRoutes.js";
+import userRoutes from "./userRoutes.js";
+import departmentRoutes from "./departmentRoutes.js";
+import categoryRoutes from "./categoryRoutes.js";
+import brandRoutes from "./brandRoutes.js";
+import vendorRoutes from "./vendorRoutes.js";
+import employeeRoutes from "./employeeRoutes.js";
+import assetRoutes from "./assetRoutes.js";
+import designationRoutes from "./designationRoutes.js";
+import assetMappingRoutes from "./assetMappingRoutes.js"
+import authMiddleware from "../Middleware/AuthMiddleware.js";
+
 const router = Router();
 
-const defaultRoutes = [
-    {
-        path: '/auth',
-        route: authRoutes
-    },
-    {
-        path:'/user',
-        route:userRoutes
-    },
+/* ---------- PUBLIC ROUTES ---------- */
+router.use("/auth", authRoutes);
 
-    {
-        path:'/department',
-        route:departmentRoutes
-    },
+/* ---------- GLOBAL AUTH MIDDLEWARE ---------- */
+router.use(authMiddleware.authGuard);
 
-
-     {
-        path:'/category',
-        route:categoryRoutes
-    },
-
-   
-    {
-        path:'/brand',
-        route:brandRoutes
-    },
-     {
-        path:'/vendor',
-        route:verdorRoutes
-    },
-    {
-        path : '/employee',
-        route: employeeRoutes
-    },
-    {
-        path:'/asset',
-        route:assetRoutes
-    }
-
+/* ---------- PROTECTED ROUTES ---------- */
+const protectedRoutes = [
+  { path: "/user", route: userRoutes },
+  { path: "/department", route: departmentRoutes },
+  { path: "/category", route: categoryRoutes },
+  { path: "/brand", route: brandRoutes },
+  { path: "/vendor", route: vendorRoutes },
+  { path: "/employee", route: employeeRoutes },
+  { path: "/asset", route: assetRoutes },
+  { path: "/designation", route: designationRoutes },
+  {path:"/asset-mapping", route:assetMappingRoutes},
 ];
 
-defaultRoutes.forEach((item) => {
-    router.use(item.path, item.route);
+protectedRoutes.forEach((item) => {
+  router.use(item.path, item.route);
 });
 
 export default router;

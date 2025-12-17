@@ -1,39 +1,41 @@
-import axios from "axios";
+import httpRequest from "../helpers/httpRequest.js";
 
-const BASE_URL = "http://localhost:3000/api/v1/asset";
-
-// Get all assets
-export const getAllAssetsApi = async () => {
-  const response = await axios.get(`${BASE_URL}/get-all-asset`);
-  return response.data.data;
+// GET ALL ASSETS
+export const getAllAssetsApi = async ({ page, perpage, search }) => {
+ // console.log("service", page, perpage);
+  const data = httpRequest.get("/asset/get-all-assets", {
+    page,
+    perpage,
+    search,
+  });
+  
+  return data;
 };
 
-// Get asset by id
+// GET SINGLE ASSET
 export const getAssetByIdApi = async (id) => {
-  const response = await axios.get(`${BASE_URL}/${id}`);
-  return response.data.data;
+  if (!id) throw new Error("Asset ID is required");
+  return httpRequest.get(`/asset/${id}`);
 };
 
-// Create asset
-export const createAssetApi = async (data, token) => {
-  const response = await axios.post(`${BASE_URL}/create-asset`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+// CREATE ASSET
+export const createAssetApi = async (data) => {
+  if (!data) throw new Error("Asset data is required");
+  return httpRequest.post("/asset/create-asset", data);
 };
 
-// Update asset
-export const updateAssetApi = async ({ id, data, token }) => {
-  const response = await axios.put(`${BASE_URL}/${id}`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+// // UPDATE ASSET
+
+export const updateAssetApi = async (id, data) => {
+  if (!id) throw new Error("Asset ID is required");
+  if (!data) throw new Error("Asset data is required");
+
+  return httpRequest.put(`/asset/${id}`, data);
 };
 
-// Delete asset
-export const deleteAssetApi = async (id, token) => {
-  const response = await axios.delete(`${BASE_URL}/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+
+// DELETE ASSET
+export const deleteAssetApi = async (id) => {
+  if (!id) throw new Error("Asset ID is required");
+  return httpRequest.delete(`/asset/${id}`);
 };

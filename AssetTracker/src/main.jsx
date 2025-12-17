@@ -13,6 +13,8 @@ import { ModalsProvider } from '@mantine/modals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ReduxWrapper from './App/ReduxWrapper.jsx'
 
+import '@mantine/dates/styles.css';
+
 // create query client
 const queryClient = new QueryClient();
 

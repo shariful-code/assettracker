@@ -1,5 +1,7 @@
 import axios from "axios";
 import { getCookie } from "../helpers/Cookie";
+import store from "../store";
+import { logout } from "../store/reducers/authReducer";
 
 const accessToken = import.meta.env.VITE_ACCESS_TOKEN;
 
@@ -21,6 +23,19 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   function (error) {
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (respose) => {
+    return respose;
+  },
+  async (error) => {
+    if (error?.response?.status === 401) {
+      store.dispatch(logout());
+      console.log("Auth error", error?.response);
+    }
     return Promise.reject(error);
   }
 );

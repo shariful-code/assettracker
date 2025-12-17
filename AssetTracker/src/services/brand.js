@@ -1,11 +1,11 @@
-import axios from "../helpers/axios.js";
+
 import httpRequest from "../helpers/httpRequest.js"; // adjust path if needed
 
 const BASE_URL = "/brand";
 
 // Get all brands
 export const getAllBrandsApi = async ({ page, pageSize, search }) => {
-  // params can include pagination, search, etc.
+ 
   return httpRequest.get(`${BASE_URL}/get-all-brand`, {
     page,
     pageSize,

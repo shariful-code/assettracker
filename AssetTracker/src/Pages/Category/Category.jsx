@@ -47,8 +47,8 @@ const CategoryPage = () => {
     keepPreviousData: true,
   });
 
-  const categories = data?.categories || [];
-  const total = data?.total || 0;
+  const categories = data?.data?.categories || [];
+  const total = data?.data?.total || 0;
 
   // reset page 1 when search changes
   const handleSearch = (e) => {

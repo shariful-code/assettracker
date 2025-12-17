@@ -23,7 +23,7 @@ const authSlice = createSlice({
       // Save token & user in cookies
       setCookie("token", token, "1d");
 
-      console.log("from authreducer", getCookie("token"));
+      //    console.log("from authreducer", getCookie("token"));
       // setCookie("user", JSON.stringify(user), "1d");
 
       // Remember email and password
@@ -37,12 +37,13 @@ const authSlice = createSlice({
     },
 
     logout: (state) => {
+      console.log("On reducer logout");
       state.user = null;
       state.isLoggedIn = false;
       // state.email = "";
 
       // // Clear cookies
-      // setCookie("token", "", "-1");
+      setCookie("token", "", "-1");
       // setCookie("user", "", "-1");
       // setCookie("email", "", "-1");
     },
@@ -61,7 +62,6 @@ const authSlice = createSlice({
       }
     },
 
-    
     setTempData: (state, action) => {
       state.tempData = action.payload;
     },

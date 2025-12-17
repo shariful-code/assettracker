@@ -1,113 +1,216 @@
 import { PrismaClient } from "@prisma/client";
+import { SuccessResponse, ErrorResponse } from "../utils/return.js";
+
 const prisma = new PrismaClient();
 
 class AssetService {
   // CREATE
   async createAsset(data) {
-    const {
-      assetName,
-      brandId,
-      specs,
-      status,
-      notes,
-      purchaseDate,
-      purchasePrice,
-      categoryId,
-      subCategoryId,
-      vendorId,
-    } = data;
-
-    if (!assetName) {
-      throw new Error("Asset name is required");
-    }
-
-    const asset = await prisma.asset.create({
-      data: {
-        assetName,
-        brandId: brandId ? Number(brandId) : null,
+    try {
+      const {
+        name,
+        brandId,
         specs,
         status,
         notes,
-        purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-        purchasePrice: purchasePrice ? Number(purchasePrice) : null,
-        categoryId: categoryId ? Number(categoryId) : null,
-        subCategoryId: subCategoryId ? Number(subCategoryId) : null,
-        vendorId: vendorId ? Number(vendorId) : null,
-      },
-      include: {
-        brand: true,
-        category: true,
-        subCategory: true,
-        vendor: true,
-      },
-    });
+        purchaseDate,
+        purchasePrice,
+        categoryId,
+        subCategoryId,
+        vendorId,
+      } = data;
 
-    return asset;
+      if (!name) {
+        return ErrorResponse(400, "Asset name is required");
+      }
+      const asset = await prisma.asset.create({
+        data: {
+          name,
+          specs,
+          status,
+          notes,
+          purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
+          purchasePrice: purchasePrice ? Number(purchasePrice) : null,
+
+          brand: brandId ? { connect: { id: Number(brandId) } } : undefined,
+          category: categoryId
+            ? { connect: { id: Number(categoryId) } }
+            : undefined,
+          subCategory: subCategoryId
+            ? { connect: { id: Number(subCategoryId) } }
+            : undefined,
+          vendor: vendorId ? { connect: { id: Number(vendorId) } } : undefined,
+        },
+        include: {
+          brand: true,
+          category: true,
+          subCategory: true,
+          vendor: true,
+        },
+      });
+
+      return SuccessResponse(201, "Asset created successfully", asset);
+    } catch (error) {
+      return ErrorResponse(500, error.message || "Server Error");
+    }
   }
 
   // GET ALL
-  async getAssets() {
-    return await prisma.asset.findMany({
-      orderBy: { id: "desc" },
-      include: {
-        brand: true,
-        category: true,
-        subCategory: true,
-        vendor: true,
-      },
-    });
+
+  async getAllAssets({ page, perpage, search }) {
+    try {
+      if (!page || !perpage) {
+        return ErrorResponse(400, "Page and perpage are required");
+      }
+
+      let filters = {};
+
+      // 🔍 Search by asset name
+      if (search) {
+        const terms = search.trim().split(/\s+/);
+        filters = {
+          AND: terms.map((term) => ({
+            name: { contains: term, mode: "insensitive" },
+          })),
+        };
+      }
+
+      const total = await prisma.asset.count({
+        where: filters,
+      });
+
+      const assets = await prisma.asset.findMany({
+        where: filters,
+        include: {
+          brand: true,
+          category: true,
+          subCategory: true,
+          vendor: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * perpage,
+        take: perpage,
+      });
+      return SuccessResponse(200, "Assets fetched successfully", {
+        assets,
+        total,
+        page,
+        perpage,
+      });
+    } catch (error) {
+      console.error(error);
+      return ErrorResponse(500, error.message || "Server Error");
+    }
   }
 
   // GET BY ID
   async getAssetById(id) {
-    const asset = await prisma.asset.findUnique({
-      where: { id: Number(id) },
-      include: {
-        brand: true,
-        category: true,
-        subCategory: true,
-        vendor: true,
-      },
-    });
+    try {
+      if (!id) return ErrorResponse(400, "Asset ID is required");
 
-    if (!asset) {
-      throw new Error("Asset not found");
+      const asset = await prisma.asset.findFirst({
+        where: { id: Number(id) },
+        include: {
+          brand: true,
+          category: true,
+          subCategory: true,
+          vendor: true,
+        },
+      });
+
+      if (!asset) return ErrorResponse(404, "Asset not found");
+
+      return SuccessResponse(200, "Asset fetched successfully", asset);
+    } catch (error) {
+      return ErrorResponse(500, error.message || "Server Error");
     }
-
-    return asset;
   }
 
   // UPDATE
   async updateAsset(id, data) {
-    const asset = await prisma.asset.findUnique({
-      where: { id: Number(id) },
-    });
+    try {
+      if (!id) return ErrorResponse(400, "Asset ID is required");
 
-    if (!asset) {
-      throw new Error("Asset not found");
+      const asset = await prisma.asset.findFirst({
+        where: { id: Number(id) },
+      });
+
+      if (!asset) return ErrorResponse(404, "Asset not found");
+
+      const {
+        name,
+        specs,
+        status,
+        notes,
+        purchaseDate,
+        purchasePrice,
+        brandId,
+        categoryId,
+        subCategoryId,
+        vendorId,
+      } = data;
+
+      const updated = await prisma.asset.update({
+        where: { id: Number(id) },
+        data: {
+          name,
+          specs,
+          status,
+          notes,
+
+          purchaseDate:
+            purchaseDate && !isNaN(new Date(purchaseDate))
+              ? new Date(purchaseDate)
+              : null,
+
+          purchasePrice:
+            purchasePrice !== null && purchasePrice !== undefined
+              ? Number(purchasePrice)
+              : null,
+
+          brand: brandId ? { connect: { id: Number(brandId) } } : undefined,
+
+          category: categoryId
+            ? { connect: { id: Number(categoryId) } }
+            : undefined,
+
+          subCategory: subCategoryId
+            ? { connect: { id: Number(subCategoryId) } }
+            : undefined,
+
+          vendor: vendorId ? { connect: { id: Number(vendorId) } } : undefined,
+        },
+        include: {
+          brand: true,
+          category: true,
+          subCategory: true,
+          vendor: true,
+        },
+      });
+
+      return SuccessResponse(200, "Asset updated successfully", updated);
+    } catch (error) {
+      console.error("UPDATE ASSET ERROR:", error);
+      return ErrorResponse(500, error.message || "Server Error");
     }
-
-    return await prisma.asset.update({
-      where: { id: Number(id) },
-      data,
-    });
   }
 
   // DELETE
   async deleteAsset(id) {
-    const asset = await prisma.asset.findUnique({
-      where: { id: Number(id) },
-    });
+    try {
+      if (!id) return ErrorResponse(400, "Asset ID is required");
 
-    if (!asset) {
-      throw new Error("Asset not found");
+      const asset = await prisma.asset.findFirst({
+        where: { id: Number(id) },
+      });
+      if (!asset) return ErrorResponse(404, "Asset not found");
+
+      await prisma.asset.delete({ where: { id: Number(id) } });
+
+      return SuccessResponse(200, "Asset deleted successfully");
+    } catch (error) {
+      return ErrorResponse(500, error.message || "Server Error");
     }
-
-    await prisma.asset.delete({
-      where: { id: Number(id) },
-    });
-
-    return { message: "Asset deleted successfully" };
   }
 }
 

@@ -1,60 +1,62 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Group, Text, Flex } from "@mantine/core";
-import { closeAllModals, modals } from "@mantine/modals";
+import { modals, closeAllModals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
 
 import PageTop from "../../components/global/PageTop.jsx";
-import TablePaperContent from "../../components/global/TablePaperContent";
-import CustomTable from "../../components/global/CustomTable";
-import CustomPagination from "../../components/global/CustomPagination";
-import BrandFilters from "../../components/Brand/BrandFilters.jsx";
-import BrandCreateModal from "../../components/Brand/BrandCreateModal.jsx";
-import BrandEditModal from "../../components/Brand/BrandEditModal.jsx";
+import TablePaperContent from "../../components/global/TablePaperContent.jsx";
+import CustomTable from "../../components/global/CustomTable.jsx";
+import CustomPagination from "../../components/global/CustomPagination.jsx";
 
-import { getAllBrandsApi, deleteBrandApi } from "../../services/brand.js";
+import DesignationFilters from "../../components/Designation/DesignationFilters.jsx";
+import DesignationCreateModal from "../../components/Designation/DesignationCreateModal.jsx";
+import DesignationEditModal from "../../components/Designation/DesignationEditModal.jsx";
+
+import {
+  getAllDesignationsApi,
+  deleteDesignationApi,
+} from "../../services/designation.js";
+
 import useDebounce from "../../hooks/useDebounce.js";
+
 const PAGE_SIZE = 10;
 
-const Brand = () => {
+const designation = () => {
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [searchKey, setSearchKey] = useState("");
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedDesignation, setSelectedDesignation] = useState(null);
 
-  const debouncedSearch = useDebounce(searchKey, 2000); // 3 sec delay
+  const debouncedSearch = useDebounce(searchKey, 1000);
 
-  // fetch brands
-  const { data, isLoading, isRefetching, isPending } = useQuery({
-    queryKey: ["brands", page, debouncedSearch],
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["designations", page, debouncedSearch],
     queryFn: () =>
-      getAllBrandsApi({ page, pageSize: PAGE_SIZE, search: debouncedSearch }),
+      getAllDesignationsApi({
+        page,
+        perpage: PAGE_SIZE,
+        search: debouncedSearch,
+      }),
     keepPreviousData: true,
   });
 
-  const brands = data?.data?.brands || [];
-  //console.log(data?.data?.brands)
+  const designations = data?.data?.designations || [];
   const total = data?.data?.total || 0;
 
-  // search handler
-  const handleSearch = (e) => {
-    setSearchKey(e.currentTarget.value);
-    setPage(1);
-  };
-
-  // Delete brand
+  // delete
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteBrandApi(id),
+    mutationFn: deleteDesignationApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["brands"]);
+      queryClient.invalidateQueries(["designations"]);
       closeAllModals();
       notifications.show({
         title: "Deleted",
-        message: "Brand deleted successfully!",
+        message: "Designation deleted successfully",
         position: "top-center",
       });
     },
@@ -63,15 +65,15 @@ const Brand = () => {
   const openDeleteModal = (id) => {
     modals.openConfirmModal({
       title: "Are you sure?",
-      children: <Text size="sm">Do you want to delete this brand?</Text>,
+      children: <Text size="sm">Delete this designation?</Text>,
       labels: { confirm: "Confirm", cancel: "Cancel" },
       confirmProps: { color: "red" },
       onConfirm: () => deleteMutation.mutate(id),
     });
   };
 
-  const openEditModal = (brand) => {
-    setSelectedBrand(brand);
+  const openEditModal = (designation) => {
+    setSelectedDesignation(designation);
     setEditModalOpened(true);
   };
 
@@ -79,9 +81,14 @@ const Brand = () => {
     {
       key: "sl",
       headerTitle: "SL",
-      row: (v, row, index) => (page - 1) * PAGE_SIZE + index + 1,
+      row: (v, r, i) => (page - 1) * PAGE_SIZE + i + 1,
     },
-    { key: "name", headerTitle: "Brand Name", row: (v, row) => row.name },
+    { key: "name", headerTitle: "Name", row: (v, r) => r.name },
+    {
+      key: "description",
+      headerTitle: "Description",
+      row: (v, r) => r.description || "-",
+    },
     {
       key: "is_active",
       headerTitle: "Status",
@@ -107,20 +114,12 @@ const Brand = () => {
     {
       key: "action",
       headerTitle: "Actions",
-      row: (v, row) => (
+      row: (v, r) => (
         <Group spacing="xs">
-          <Button
-            size="xs"
-            onClick={() => openEditModal(row)}
-            style={{ backgroundColor: "#3b82f6", color: "#fff" }}
-          >
+          <Button size="xs" onClick={() => openEditModal(r)}>
             <IconEdit size={14} />
           </Button>
-          <Button
-            size="xs"
-            onClick={() => openDeleteModal(row.id)}
-            style={{ backgroundColor: "#ef4444", color: "#fff" }}
-          >
+          <Button size="xs" color="red" onClick={() => openDeleteModal(r.id)}>
             <IconTrash size={14} />
           </Button>
         </Group>
@@ -128,28 +127,28 @@ const Brand = () => {
     },
   ];
 
-  const handleRefresh = () => {
-    setSearchKey("");
-    setPage(1);
-    queryClient.invalidateQueries(["brands"]);
-  };
-
   return (
-    <div>
-      <PageTop PAGE_TITLE="Brand Management" backBtn={false} />
+    <>
+      <PageTop PAGE_TITLE="Designation Management" />
 
       <TablePaperContent
         filters={
-          <BrandFilters
+          <DesignationFilters
             searchKey={searchKey}
-            onSearchChange={handleSearch}
-            onRefresh={handleRefresh}
+            onSearchChange={(e) => {
+              setSearchKey(e.currentTarget.value);
+              setPage(1);
+            }}
+            onRefresh={() => {
+              setSearchKey("");
+              setPage(1);
+              queryClient.invalidateQueries(["designations"]);
+            }}
             onCreate={() => setCreateModalOpened(true)}
           />
         }
-        filterBadges={null}
         exportAndPagination={
-          <Flex justify="flex-end" align="center">
+          <Flex justify="flex-end">
             <CustomPagination
               page={page}
               setPage={setPage}
@@ -161,25 +160,24 @@ const Brand = () => {
         table={
           <CustomTable
             tableHeaders={tableHeaders}
-            data={brands}
-            isFetching={isPending || isLoading || isRefetching}
+            data={designations}
+            isFetching={isLoading || isFetching}
           />
         }
       />
 
-      <BrandCreateModal
+      <DesignationCreateModal
         opened={createModalOpened}
         onClose={() => setCreateModalOpened(false)}
-        onSuccess={() => queryClient.invalidateQueries(["brands"])}
       />
-      <BrandEditModal
+
+      <DesignationEditModal
         opened={editModalOpened}
         onClose={() => setEditModalOpened(false)}
-        brand={selectedBrand}
-        onSuccess={() => queryClient.invalidateQueries(["brands"])}
+        designation={selectedDesignation}
       />
-    </div>
+    </>
   );
 };
 
-export default Brand;
+export default designation;

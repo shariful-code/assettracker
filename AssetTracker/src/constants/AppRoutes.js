@@ -5,7 +5,7 @@ import Signup from '../Pages/Auth/Signup';
 import Dashboard from '../Pages/Dashboard';
 
       import * as urls from "./AppUrls"
-import Assets from '../Pages/Assets';
+import Assets from '../Pages/Asset/Assets';
 
 import user from '../Pages/User/user';
 import userCreate from '../Pages/User/userCreate';
@@ -17,6 +17,10 @@ import Category from '../Pages/Category/Category';
 import Brand from '../Pages/Brand/Brand';
 import Vendor from '../Pages/Vendor/vendor'
 import employee from '../Pages/Emplpoyee/employee';
+import designation from '../Pages/Designation/designation';
+import assetCreate from '../Pages/Asset/assetCreate';
+import assetEdit from '../Pages/Asset/assetEdit';
+import assetMapping from '../Pages/AssetMapping/assetMapping';
 
 const appRoutes = [
     {
@@ -45,9 +49,29 @@ const appRoutes = [
         isIndexUrl: false,
         isProtected: true
     },
+    //assets
     {
         path:urls.ASSETS,
         Element:Assets,
+        isIndexUrl:false,
+        isProtected:true
+    },
+    {
+        path:urls.ASSET_CREATE,
+        Element:assetCreate,
+        isIndexUrl:false,
+        isProtected:true
+    },
+
+     {
+        path:urls.ASSET_EDIT,
+        Element:assetEdit,
+        isIndexUrl:false,
+        isProtected:true
+    },
+     {
+        path:urls.ASSET_MAPPING,
+        Element:assetMapping,
         isIndexUrl:false,
         isProtected:true
     },
@@ -115,6 +139,13 @@ const appRoutes = [
      {
          path:urls.EMPLOYEE,
         Element:employee,
+        isIndexUrl:false,
+        isProtected:true
+    },
+
+    {
+        path:urls.DESIGNATION,
+        Element:designation,
         isIndexUrl:false,
         isProtected:true
     }

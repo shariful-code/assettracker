@@ -50,7 +50,7 @@ const UserCreate = () => {
   });
 
   const createUserMutation = useMutation({
-    mutationFn:(value)=> createUserApi(value),
+    mutationFn: (value) => createUserApi(value),
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
       notifications.show({
@@ -83,130 +83,129 @@ const UserCreate = () => {
 
   return (
     <>
-    <PageTop PAGE_TITLE="Create User" backBtn={true} />
+      <PageTop PAGE_TITLE="Create User" backBtn={true} />
 
-    <Box style={{ maxWidth: 600, margin: "50px auto" }}>
-      
-      <Paper
-        p="xl"
-        shadow="xl"
-        radius="lg"
-        style={{
-          border: "1px solid #e0e0e0",
-          background: "#ffffff",
-        }}
-      >
-        <Text size="xl" fw={700} mb="md">
-          Create New User
-        </Text>
+      <Box style={{ maxWidth: 600, margin: "50px auto" }}>
+        <Paper
+          p="xl"
+          shadow="xl"
+          radius="lg"
+          style={{
+            border: "1px solid #e0e0e0",
+            background: "#ffffff",
+          }}
+        >
+          <Text size="xl" fw={700} mb="md">
+            Create New User
+          </Text>
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            {/* Premium Styled Input */}
-            <TextInput
-              label="First Name"
-              placeholder="Enter first name"
-              withAsterisk
-              error={form.errors.first_name}
-              styles={{
-                input: {
-                  border: "1px solid #b7c5d3",
-                  borderRadius: 8,
-                  padding: "10px",
-                  transition: "0.2s",
-                },
-                inputFocused: {
-                  borderColor: "#0f4794",
-                },
-                label: {
-                  fontWeight: 600,
-                },
-                error: {
-                  color: "#d90429",
-                  fontSize: 13,
-                },
-              }}
-              {...form.getInputProps("first_name")}
-            />
+          <form onSubmit={form.onSubmit(handleSubmit)}>
+            <Stack gap="md">
+              {/* Premium Styled Input */}
+              <TextInput
+                label="First Name"
+                placeholder="Enter first name"
+                withAsterisk
+                error={form.errors.first_name}
+                styles={{
+                  input: {
+                    border: "1px solid #b7c5d3",
+                    borderRadius: 8,
+                    padding: "10px",
+                    transition: "0.2s",
+                  },
+                  inputFocused: {
+                    borderColor: "#0f4794",
+                  },
+                  label: {
+                    fontWeight: 600,
+                  },
+                  error: {
+                    color: "#d90429",
+                    fontSize: 13,
+                  },
+                }}
+                {...form.getInputProps("first_name")}
+              />
 
-            <TextInput
-              label="Last Name"
-              placeholder="Enter last name"
-              withAsterisk
-              error={form.errors.last_name}
-              styles={{
-                input: {
-                  border: "1px solid #b7c5d3",
-                  borderRadius: 8,
-                  padding: "10px",
-                },
-                inputFocused: {
-                  borderColor: "#0f4794",
-                },
-                label: {
-                  fontWeight: 600,
-                },
-                error: {
-                  color: "#d90429",
-                },
-              }}
-              {...form.getInputProps("last_name")}
-            />
+              <TextInput
+                label="Last Name"
+                placeholder="Enter last name"
+                withAsterisk
+                error={form.errors.last_name}
+                styles={{
+                  input: {
+                    border: "1px solid #b7c5d3",
+                    borderRadius: 8,
+                    padding: "10px",
+                  },
+                  inputFocused: {
+                    borderColor: "#0f4794",
+                  },
+                  label: {
+                    fontWeight: 600,
+                  },
+                  error: {
+                    color: "#d90429",
+                  },
+                }}
+                {...form.getInputProps("last_name")}
+              />
 
-            <TextInput
-              label="Email"
-              placeholder="Enter email"
-              withAsterisk
-              error={form.errors.email}
-              styles={{
-                input: { border: "1px solid #b7c5d3", borderRadius: 8 },
-                inputFocused: { borderColor: "#0f4794" },
-                label: { fontWeight: 600 },
-                error: { color: "#d90429" },
-              }}
-              {...form.getInputProps("email")}
-            />
+              <TextInput
+                label="Email"
+                placeholder="Enter email"
+                withAsterisk
+                error={form.errors.email}
+                styles={{
+                  input: { border: "1px solid #b7c5d3", borderRadius: 8 },
+                  inputFocused: { borderColor: "#0f4794" },
+                  label: { fontWeight: 600 },
+                  error: { color: "#d90429" },
+                }}
+                {...form.getInputProps("email")}
+              />
 
-            <TextInput
-              label="Phone Number"
-              placeholder="01XXXXXXXXX"
-              withAsterisk
-              error={form.errors.phone}
-              styles={{
-                input: { border: "1px solid #b7c5d3", borderRadius: 8 },
-                inputFocused: { borderColor: "#0f4794" },
-                label: { fontWeight: 600 },
-                error: { color: "#d90429" },
-              }}
-              {...form.getInputProps("phone")}
-            />
+              <TextInput
+                label="Phone Number"
+                placeholder="01XXXXXXXXX"
+                withAsterisk
+                error={form.errors.phone}
+                styles={{
+                  input: { border: "1px solid #b7c5d3", borderRadius: 8 },
+                  inputFocused: { borderColor: "#0f4794" },
+                  label: { fontWeight: 600 },
+                  error: { color: "#d90429" },
+                }}
+                {...form.getInputProps("phone")}
+              />
 
-            {/* Premium Button */}
-            <Button
-              type="submit"
-              size="md"
-              radius="md"
-              loading={createUserMutation.isLoading}
-              styles={{
-                root: {
-                  backgroundColor: "#0f4794",
-                  fontWeight: 700,
-                  padding: "12px 20px",
-                  fontSize: 16,
-                  borderRadius: 10,
-                  transition: "0.3s",
-                },
-                rootHovered: {
-                  backgroundColor: "#0c3a78",
-                },
-              }}
-            >
-              Create User
-            </Button>
-          </Stack>
-        </form>
-      </Paper>
-    </Box>
+              {/* Premium Button */}
+              <Button
+                type="submit"
+                size="md"
+                radius="md"
+                loading={createUserMutation.isLoading}
+                styles={{
+                  root: {
+                    backgroundColor: "#0f4794",
+                    fontWeight: 700,
+                    padding: "12px 20px",
+                    fontSize: 16,
+                    borderRadius: 10,
+                    transition: "0.3s",
+                  },
+                  rootHovered: {
+                    backgroundColor: "#0c3a78",
+                  },
+                }}
+              >
+                Create User
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
+      </Box>
     </>
   );
 };

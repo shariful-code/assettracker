@@ -44,7 +44,7 @@ const employee = () => {
       }),
     keepPreviousData: true,
   });
-  console.log(data?.data);
+ 
   const employees = data?.data?.employees || [];
   const total = data?.data?.total || 0;
 
@@ -101,7 +101,7 @@ const employee = () => {
     {
       key: "designation",
       headerTitle: "Designation",
-      row: (v, row) => row.designation,
+      row: (v, row) => row.designation?.name || "-",
     },
     {
       key: "department",

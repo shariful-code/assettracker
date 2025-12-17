@@ -1,54 +1,66 @@
 import assetService from "../services/assetService.js";
 
 class AssetController {
+  // CREATE
   async createAsset(req, res) {
     try {
-      const asset = await assetService.createAsset(req.body);
-      res.status(201).json({
-        message: "Asset created successfully",
-        data: asset,
-      });
+      const result = await assetService.createAsset(req.body);
+      res.status(result.responseCode).json(result);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
-  async getAssets(req, res) {
+  // GET ALL
+  async getAll(req, res) {
     try {
-      const assets = await assetService.getAssets();
-      res.json(assets);
+      const page = parseInt(req.query.page, 10);
+      const perpage = parseInt(req.query.pageSize, 10) || 10;
+      const search = req.query.search || "";
+
+     // console.log(page, perpage, "in controller")
+      const result = await assetService.getAllAssets({
+        page,
+        perpage,
+        search,
+      });
+
+      return res.status(result.responseCode).json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
-
+  // GET BY ID
   async getAssetById(req, res) {
     try {
-      const asset = await assetService.getAssetById(req.params.id);
-      res.json(asset);
+      const result = await assetService.getAssetById(req.params.id);
+      res.status(result.responseCode).json(result);
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
+  // UPDATE
   async updateAsset(req, res) {
     try {
-      const asset = await assetService.updateAsset(req.params.id, req.body);
-      res.json({
-        message: "Asset updated successfully",
-        data: asset,
-      });
+      const result = await assetService.updateAsset(req.params.id, req.body);
+      console.log(req.body)
+      res.status(result.responseCode).json(result);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
+  // DELETE
   async deleteAsset(req, res) {
     try {
       const result = await assetService.deleteAsset(req.params.id);
-      res.json(result);
+      res.status(result.responseCode).json(result);
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }

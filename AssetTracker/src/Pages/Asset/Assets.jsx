@@ -1,60 +1,50 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Group, Text, Flex } from "@mantine/core";
+import { useNavigate } from "react-router-dom";
 import { closeAllModals, modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
 
 import PageTop from "../../components/global/PageTop.jsx";
-import TablePaperContent from "../../components/global/TablePaperContent";
-import CustomTable from "../../components/global/CustomTable";
-import CustomPagination from "../../components/global/CustomPagination";
-import BrandFilters from "../../components/Brand/BrandFilters.jsx";
-import BrandCreateModal from "../../components/Brand/BrandCreateModal.jsx";
-import BrandEditModal from "../../components/Brand/BrandEditModal.jsx";
+import TablePaperContent from "../../components/global/TablePaperContent.jsx";
+import CustomTable from "../../components/global/CustomTable.jsx";
+import CustomPagination from "../../components/global/CustomPagination.jsx";
+import AssetFilters from "../../components/Asset/AssetFilters.jsx";
 
-import { getAllBrandsApi, deleteBrandApi } from "../../services/brand.js";
-import useDebounce from "../../hooks/useDebounce.js";
+import { getAllAssetsApi, deleteAssetApi } from "../../services/asset.js";
+
 const PAGE_SIZE = 10;
 
-const Brand = () => {
+const Assets = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [searchKey, setSearchKey] = useState("");
-  const [createModalOpened, setCreateModalOpened] = useState(false);
-  const [editModalOpened, setEditModalOpened] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState(null);
 
-  const debouncedSearch = useDebounce(searchKey, 2000); // 3 sec delay
+  const debouncedSearch = searchKey;
 
-  // fetch brands
-  const { data, isLoading, isRefetching, isPending } = useQuery({
-    queryKey: ["brands", page, debouncedSearch],
+  const { data, isLoading, isFetching, isError, error } = useQuery({
+    queryKey: ["assets", page, debouncedSearch],
     queryFn: () =>
-      getAllBrandsApi({ page, pageSize: PAGE_SIZE, search: debouncedSearch }),
+      getAllAssetsApi({ page, pageSize: PAGE_SIZE, search: debouncedSearch }),
     keepPreviousData: true,
   });
 
-  const brands = data?.data?.brands || [];
-  //console.log(data?.data?.brands)
+  if (isError) return <Text color="red">{error.message}</Text>;
+
+  const assets = data?.data?.assets || [];
   const total = data?.data?.total || 0;
 
-  // search handler
-  const handleSearch = (e) => {
-    setSearchKey(e.currentTarget.value);
-    setPage(1);
-  };
-
-  // Delete brand
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteBrandApi(id),
+    mutationFn: (id) => deleteAssetApi(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(["brands"]);
+      queryClient.invalidateQueries(["assets"]);
       closeAllModals();
       notifications.show({
         title: "Deleted",
-        message: "Brand deleted successfully!",
+        message: "Asset deleted successfully!",
         position: "top-center",
       });
     },
@@ -63,25 +53,57 @@ const Brand = () => {
   const openDeleteModal = (id) => {
     modals.openConfirmModal({
       title: "Are you sure?",
-      children: <Text size="sm">Do you want to delete this brand?</Text>,
+      children: <Text size="sm">Do you want to delete this asset?</Text>,
       labels: { confirm: "Confirm", cancel: "Cancel" },
       confirmProps: { color: "red" },
       onConfirm: () => deleteMutation.mutate(id),
     });
   };
 
-  const openEditModal = (brand) => {
-    setSelectedBrand(brand);
-    setEditModalOpened(true);
+  const handleSearchChange = (e) => setSearchKey(e.currentTarget.value);
+  const handleRefresh = () => {
+    setSearchKey("");
+    setPage(1);
+    queryClient.invalidateQueries(["assets"]);
   };
 
   const tableHeaders = [
     {
       key: "sl",
       headerTitle: "SL",
-      row: (v, row, index) => (page - 1) * PAGE_SIZE + index + 1,
+      row: (v, row, i) => (page - 1) * PAGE_SIZE + i + 1,
     },
-    { key: "name", headerTitle: "Brand Name", row: (v, row) => row.name },
+    {
+      key: "name",
+      headerTitle: "Asset Name",
+      row: (v, row) => row.name || "-",
+    },
+    {
+      key: "mainCategory",
+      headerTitle: "Category",
+      row: (v, row) =>
+        row.subCategory ? row.category?.name || "-" : row.category?.name || "-", // main category if no sub
+    },
+    {
+      key: "subCategory",
+      headerTitle: "Subcategory",
+      row: (v, row) => row.subCategory?.name || "-", // show subcategory if exists
+    },
+    {
+      key: "brand",
+      headerTitle: "Brand",
+      row: (v, row) => row.brand?.name || "-",
+    },
+    {
+      key: "vendor",
+      headerTitle: "Vendor",
+      row: (v, row) => row.vendor?.name || "-",
+    },
+    {
+      key: "status",
+      headerTitle: "Status",
+      row: (v, row) => row.status || "-",
+    },
     {
       key: "is_active",
       headerTitle: "Status",
@@ -105,13 +127,13 @@ const Brand = () => {
       },
     },
     {
-      key: "action",
+      key: "actions",
       headerTitle: "Actions",
       row: (v, row) => (
         <Group spacing="xs">
           <Button
             size="xs"
-            onClick={() => openEditModal(row)}
+            onClick={() => navigate(`/asset/edit/${row.id}`)}
             style={{ backgroundColor: "#3b82f6", color: "#fff" }}
           >
             <IconEdit size={14} />
@@ -128,23 +150,17 @@ const Brand = () => {
     },
   ];
 
-  const handleRefresh = () => {
-    setSearchKey("");
-    setPage(1);
-    queryClient.invalidateQueries(["brands"]);
-  };
-
   return (
     <div>
-      <PageTop PAGE_TITLE="Brand Management" backBtn={false} />
+      <PageTop PAGE_TITLE="Asset Management" backBtn={false} />
 
       <TablePaperContent
         filters={
-          <BrandFilters
+          <AssetFilters
             searchKey={searchKey}
-            onSearchChange={handleSearch}
+            onSearchChange={handleSearchChange}
             onRefresh={handleRefresh}
-            onCreate={() => setCreateModalOpened(true)}
+            onCreate={() => navigate("/asset/create")}
           />
         }
         filterBadges={null}
@@ -161,25 +177,13 @@ const Brand = () => {
         table={
           <CustomTable
             tableHeaders={tableHeaders}
-            data={brands}
-            isFetching={isPending || isLoading || isRefetching}
+            data={assets}
+            isFetching={isLoading || isFetching}
           />
         }
-      />
-
-      <BrandCreateModal
-        opened={createModalOpened}
-        onClose={() => setCreateModalOpened(false)}
-        onSuccess={() => queryClient.invalidateQueries(["brands"])}
-      />
-      <BrandEditModal
-        opened={editModalOpened}
-        onClose={() => setEditModalOpened(false)}
-        brand={selectedBrand}
-        onSuccess={() => queryClient.invalidateQueries(["brands"])}
       />
     </div>
   );
 };
 
-export default Brand;
+export default Assets;

@@ -4,7 +4,7 @@ import UserController from "../Controller/UserController.js";
  import AuthMiddleware from "../Middleware/AuthMiddleware.js";
 
 const router = Router();
-router.post('/create-user', AuthMiddleware.authGuard,UserController.createUser);
+router.post('/create-user',UserController.createUser);
 
 router.get("/:id", UserController.getUserById);
 

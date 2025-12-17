@@ -22,7 +22,7 @@ const SubCategoryCreateModal = ({ opened, onClose, onSuccess }) => {
   });
 
 // Make sure categories is always an array
-const categories = data?.categories || []; // ✅
+const categories = data?.data?.categories || []; // ✅
 
   const categoryOptions =
     categories?.map((cat) => ({

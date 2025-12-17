@@ -1,83 +1,95 @@
 import { PrismaClient } from "@prisma/client";
+import { SuccessResponse, ErrorResponse } from "../utils/return.js";
+
 const prisma = new PrismaClient();
 
-class categoryService {
+class CategoryService {
   // CREATE
   async createCategory(data) {
     try {
+      if (!data.name) return ErrorResponse(400, "Category name is required");
+
       const category = await prisma.category.create({
         data: {
           name: data.name,
           parentId: data.parentId || null,
         },
       });
-      return category;
+
+      return SuccessResponse(201, "Category created successfully", category);
     } catch (error) {
-      console.error("Create Category Error:", error);
-      throw new Error("Failed to create category");
+      return ErrorResponse(500, error.message || "Failed to create category");
     }
   }
 
-  // GET ALL (with parent + children)
-// CategoryService.js
-async getAllCategories({ page, perpage, search }) {
-  try {
-    const filters = {
-      parentId: null,
-      ...(search
-        ? { name: { contains: search, mode: "insensitive" } }
-        : {}),
-    };
+  // GET ALL
+  async getAllCategories({ page, perpage, search }) {
+    try {
+      if (!page || !perpage)
+        return ErrorResponse(400, "Page and perpage are required");
 
-    const total = await prisma.category.count({ where: filters });
+      const allCategories = await prisma.category.findMany({
+        orderBy: { id: "desc" },
+      });
 
-    const categories = await prisma.category.findMany({
-      where: filters,
-      include: { children: true },
-      orderBy: { id: "asc" },
-      skip: (page - 1) * perpage,
-      take: perpage,
-    });
+      let parentCategories = allCategories.filter((c) => c.parentId === null);
 
-    return {
-      success: true,
-      status: 200,
-      data: { categories, total, page, perpage },
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      status: 500,
-      data: { error: error.message || "Server Error" },
-    };
+      parentCategories = parentCategories.map((parent) => ({
+        ...parent,
+        children: allCategories.filter((c) => c.parentId === parent.id),
+      }));
+
+      if (search) {
+        const terms = search.trim().split(/\s+/);
+        parentCategories = parentCategories.filter((parent) =>
+          terms.every((term) =>
+            parent.name.toLowerCase().includes(term.toLowerCase())
+          )
+        );
+      }
+
+      const total = parentCategories.length;
+      const start = (page - 1) * perpage;
+      const paginatedCategories = parentCategories.slice(
+        start,
+        start + perpage
+      );
+
+      return SuccessResponse(200, "Categories fetched successfully", {
+        categories: paginatedCategories,
+        total,
+        page,
+        perpage,
+      });
+    } catch (error) {
+      return ErrorResponse(500, error.message || "Server Error");
+    }
   }
-}
-
 
   // GET SINGLE
   async getCategoryById(id) {
     try {
+      if (!id) return ErrorResponse(400, "Category ID is required");
+
       const category = await prisma.category.findUnique({
         where: { id: Number(id) },
-        include: {
-          parent: true,
-          children: true,
-        },
+        include: { parent: true, children: true },
       });
 
-      if (!category) throw new Error("Category not found");
+      if (!category) return ErrorResponse(404, "Category not found");
 
-      return category;
+      return SuccessResponse(200, "Category fetched successfully", category);
     } catch (error) {
-      console.error("Get Category Error:", error);
-      throw new Error(error.message || "Failed to fetch category");
+      return ErrorResponse(500, error.message || "Failed to fetch category");
     }
   }
 
   // UPDATE
   async updateCategory(id, data) {
     try {
+      if (!id) return ErrorResponse(400, "Category ID is required");
+      if (!data.name) return ErrorResponse(400, "Category name is required");
+
       const updated = await prisma.category.update({
         where: { id: Number(id) },
         data: {
@@ -87,46 +99,44 @@ async getAllCategories({ page, perpage, search }) {
         },
       });
 
-      return updated;
+      return SuccessResponse(200, "Category updated successfully", updated);
     } catch (error) {
-      console.error("Update Category Error:", error);
-      throw new Error("Failed to update category");
+      return ErrorResponse(500, error.message || "Failed to update category");
     }
   }
 
-  // DELETE Category or Subcategory
-    async deleteCategoryOrSub(id) {
-    const categoryId = Number(id);
+  // DELETE
+  async deleteCategoryOrSub(id) {
+    try {
+      if (!id) return ErrorResponse(400, "Category ID is required");
 
-    // find the category
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-    });
+      const categoryId = Number(id);
 
-    if (!category) {
-      throw new Error("Category or Subcategory not found");
-    }
-
-    if (category.parentId === null) {
-      // CASE 1: Parent category -> delete all subcategories
-      await prisma.category.deleteMany({
-        where: { parentId: categoryId },
-      });
-
-      await prisma.category.delete({
+      const category = await prisma.category.findUnique({
         where: { id: categoryId },
       });
 
-      return "Category and all subcategories deleted successfully";
-    } else {
-      // CASE 2: Subcategory
-      await prisma.category.delete({
-        where: { id: categoryId },
-      });
+      if (!category)
+        return ErrorResponse(404, "Category or Subcategory not found");
 
-      return "Subcategory deleted successfully";
+      if (category.parentId === null) {
+        // delete parent + children
+        await prisma.category.deleteMany({ where: { parentId: categoryId } });
+        await prisma.category.delete({ where: { id: categoryId } });
+
+        return SuccessResponse(
+          200,
+          "Category and all subcategories deleted successfully"
+        );
+      } else {
+        // delete subcategory
+        await prisma.category.delete({ where: { id: categoryId } });
+        return SuccessResponse(200, "Subcategory deleted successfully");
+      }
+    } catch (error) {
+      return ErrorResponse(500, error.message || "Failed to delete category");
     }
   }
 }
 
-export default new categoryService();
+export default new CategoryService();

@@ -92,6 +92,28 @@ const vendor = () => {
     { key: "email", headerTitle: "Email", row: (v, row) => row.email },
     { key: "contact", headerTitle: "Contact", row: (v, row) => row.contact },
     {
+      key: "is_active",
+      headerTitle: "Status",
+      row: (value, row) => {
+        const active = row?.is_active;
+
+        return (
+          <span
+            style={{
+              padding: "4px 10px",
+              borderRadius: "12px",
+              fontSize: "12px",
+              fontWeight: 500,
+              color: active ? "#0f5132" : "#842029",
+              backgroundColor: active ? "#d1e7dd" : "#f8d7da",
+            }}
+          >
+            {active ? "Active" : "Inactive"}
+          </span>
+        );
+      },
+    },
+    {
       key: "action",
       headerTitle: "Actions",
       row: (v, row) => (
